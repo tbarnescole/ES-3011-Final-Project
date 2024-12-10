@@ -7,28 +7,38 @@
 #define ENCODER_TICKS_PER_REV 12 // NO. OF HIGH PULSES PER ROTATION
 const int32_t ENCODER_TICKS_PER_SHAFT_REV= ENCODER_TICKS_PER_REV * GEAR_RATIO;
 #define DELAY_PERIOD 0
+#define WHEEL_DIAMETER 57
 
 // INIT SMART MOTORS
-SmartMotor motors[] = {0x0A, 0x0B}; // INIT MOTOR W/ DEFAULT ADDRESS
+SmartMotor motors[] = {0x0C, 0x0B}; // INIT MOTOR W/ DEFAULT ADDRESS
 // SmartMotor motors[] = {0x05,0x06,0x07}; // INIT MOTOR W/ DEFAULT ADDRESS
 const int MOTOR_NUM = sizeof(motors)/sizeof(motors[0]);
+
+int metersToTicks = (1000/(WHEEL_DIAMETER*3.1415926))*ENCODER_TICKS_PER_SHAFT_REV;
+float kP = 1;
+float kI = 0;
 
 void setup() {
     Serial.begin(115200);
     Wire.begin(); // INIT DEVICE AS I2C CONTROLLER
 }
 
-int32_t target_pos= 100000000; // INIT TARGET DISPLACEMENT
+int32_t target_pos= 10000; // INIT TARGET DISPLACEMENT
 void loop() {
     // FOR EACH MOTOR ADDRESS
     for (int i = 0; i < MOTOR_NUM; i++) {
+        //motors[i].tune_pos_pid(kP, kI, 0);
         Serial.print("Writing to motor: ");
         Serial.println(motors[i].get_address());
 
         Serial.print("Target position: ");
         Serial.println(target_pos);
-
-        uint8_t status= motors[i].set_position(target_pos);
+        uint8_t status;
+          if (motors[i].get_address() == 12) {
+            status= motors[i].set_position(-1*target_pos);
+          } else {
+            status= motors[i].set_position(target_pos);
+          }
 
         Serial.print("Status: ");
         Serial.println(status);
@@ -44,6 +54,6 @@ void loop() {
         Serial.println();
     }
     
-    target_pos+= ENCODER_TICKS_PER_SHAFT_REV;
+    //target_pos+= ENCODER_TICKS_PER_SHAFT_REV;
     delay(DELAY_PERIOD);
 } 
