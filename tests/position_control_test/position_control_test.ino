@@ -37,7 +37,6 @@ void setup() {
 }
 
 int32_t target_pos= 15000; // INIT TARGET DISPLACEMENT
-int32_t turn_amount = 734;
 int32_t target_pos_neg = target_pos*-1;
 int32_t target_vel = 30;
 int32_t target_vel_neg = -30;
@@ -45,38 +44,38 @@ bool target = false;
 
 void loop() {
     // FOR EACH MOTOR ADDRESS
+    
+    for (int i = 0; i < MOTOR_NUM; i++) {
+        //motors[i].tune_pos_pid(kP, kI, 0);
+        Serial.print("Writing to motor: ");
+        Serial.println(motors[i].get_address());
 
-      for (int i = 0; i < MOTOR_NUM; i++) {
-          //motors[i].tune_pos_pid(kP, kI, 0);
-          Serial.print("Writing to motor: ");
-          Serial.println(motors[i].get_address());
-
-          Serial.print("Target position: ");
-          Serial.println(target_pos);
-          uint8_t status;
-            if (motors[i].get_address() == 12) {
-              status= motors[i].set_position(target_pos_neg);
-            } else {
-              status= motors[i].set_position(target_pos);
-            }
-            
-          Serial.print("Status: ");
-          Serial.println(status);
-  
-          // READ MOTOR VARIABLES IF TRANSMISSION IS SUCCESSFUL
-          if (status < 1) {
-              delay(DELAY_PERIOD);
-
-              // PRINT CURRENT POSITION
-              Serial.print("Position: ");
-              Serial.println(motors[i].get_position());
+        Serial.print("Target position: ");
+        Serial.println(target_pos);
+        uint8_t status;
+        if (target_pos - motors[i].get_position() < abs(10)) {
+          target = true;
+        }
+          if (motors[i].get_address() == 12) {
+            status= motors[i].set_position(target_pos_neg);
+          } else {
+            status= motors[i].set_position(target_pos);
           }
-          Serial.println();
-          //if (abs(target_pos - motors[i].get_position()) < 100) {
-          //  turn = true;
-          //}
-      }
+          
+        Serial.print("Status: ");
+        Serial.println(status);
+ 
+        // READ MOTOR VARIABLES IF TRANSMISSION IS SUCCESSFUL
+        if (status < 1) {
+            delay(DELAY_PERIOD);
 
+            // PRINT CURRENT POSITION
+            Serial.print("Position: ");
+            Serial.println(motors[i].get_position());
+        }
+        Serial.println();
+    }
+    
     //target_pos+= ENCODER_TICKS_PER_SHAFT_REV;
     delay(DELAY_PERIOD);
 } 
